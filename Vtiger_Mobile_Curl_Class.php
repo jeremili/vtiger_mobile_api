@@ -51,5 +51,25 @@ class Vtiger_Mobile_Curl_Class {
 		$this->token = $sessionId;
 		return true;
 	}
+
+	function query($query, $module) {
+		$curl_handler = curl_init();
+		$params = array("_operation" => "query", "_session" => $this->token, "query" => $query, "module" => $module);
+		$options = array(CURLOPT_URL => $this->endpointUrl, CURLOPT_POST => 1, CURLOPT_POSTFIELDS => http_build_query($params));
+		curl_setopt_array($curl_handler, ($this->defaults + $options));
+		
+		$result = curl_exec($curl_handler);
+		if (!$result) {
+			die(curl_error($curl_handler));
+		}
+		$jsonResponse = json_decode($result, true);
+		if($jsonResponse["success"] == false) {
+			die("Query failed: ".$jsonResponse["error"]["message"]);
+		}
+		//Array of retrieved objects
+		$retrievedObjects = $jsonResponse["result"]["records"];
+		
+		return $retrievedObjects;
+	}
 }
 ?>
